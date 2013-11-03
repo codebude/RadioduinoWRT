@@ -1,0 +1,21 @@
+.cust-nav-alert > li > a:hover {
+    color: white;
+    background-image: linear-gradient(bottom, #CC0000 2%, #8C0000 74%);
+background-image: -o-linear-gradient(bottom, #CC0000 2%, #8C0000 74%);
+background-image: -moz-linear-gradient(bottom, #CC0000 2%, #8C0000 74%);
+background-image: -webkit-linear-gradient(bottom, #CC0000 2%, #8C0000 74%);
+background-image: -ms-linear-gradient(bottom, #CC0000 2%, #8C0000 74%);
+
+background-image: -webkit-gradient(
+	linear,
+	left bottom,
+	left top,
+	color-stop(0.02, #CC0000),
+	color-stop(0.74, #8C0000)
+);
+}
+
+@font-face {
+  font-family: LCDBOLD;
+  src: url('http://192.168.178.37:81/webradio/fonts/LCDBOLD.woff') format('woff');
+} 

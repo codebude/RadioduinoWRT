@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RadioduinoWRT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Radio-Server control panel">
+    <meta name="author" content="Raffael Herrmann">
+
+    <!-- Le styles -->
+    <style type="text/css">
+      
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+
+    <link href="css/bootstrap_cyborg.min.css" rel="stylesheet">    
+    <link href="css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="css/digitize/digitize.min.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="../assets/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="img/favicons/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/favicons/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/favicons/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="img/favicons/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon-precomposed" href="img/favicons/apple-touch-icon-57x57.png">
+    <link rel="shortcut icon" href="img/favicons/favicon.ico">
+
+
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/digitize/cmatrix.min.js"></script>
+    <script src="js/digitize/digitize.min.js"></script>
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#"><i class="icon-signal icon-white"></i>RadioduinoWRT</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="index.html">Control</a></li>
+              <li class="active"><a href="stationmanager.html">Stationmanager</a></li>
+            </ul>            
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <!-- Main hero unit for a primary marketing message or call to action -->
+      <div class="hero-unit" style="padding:10px;">
+        <div class="row">
+          <div class="span4">
+           
+              <h2>Remove station</h2>
+                 
+              <ul id="playlist-list" class="nav nav-tabs nav-stacked cust-nav-alert">
+                <li><a href="#" class="li-del-radio">Loading list...</a></li>
+              </ul>           
+          </div>
+
+          <div class="span7">
+              <h2>Add station</h2>
+              <form id="form-add-radio" class="form-inline">
+                <div class="input-append">
+                  <input id="input-add-radio" type="text" placeholder="Enter radio-station url here..."></input>
+                  <button id="btn-add-radio" style="width:90px;" type="button" class="btn btn-success" data-loading-text="Adding...">Add station</button>    
+                </div>
+              </form>
+          </div>
+        </div> 
+      </div> 
+      <hr>
+
+      <footer>
+        <p>&copy; www.code-bude.net 2013</p>
+      </footer>
+    </div>
+
+      
+
+    </div> <!-- /container -->
+
+
+    <!-- Modal -->
+    <div id="modal-del-radio" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3></h3>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+        <button id="modal-del-radio-btn-del" class="btn btn-danger" data-loading-text="Deleting...">Delete</button>
+      </div>
+    </div>
+
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+
+    <script type="text/javascript">
+      $(document).ready(function (){
+
+         
+
+          $('#btn-add-radio').button();
+
+          $('#input-add-radio').click(function(){
+
+              if ($(this).attr('placeholder') == 'Enter radio-station url here...')
+              {
+                $(this).removeAttr('placeholder');
+                $(this).val('');
+              }  
+          });
+
+          $('#btn-add-radio').click(function() {
+              $(this).button('adding');
+
+              
+              if($('#input-add-radio').val().length > 0 && $('#input-add-radio').attr('disabled') != 'disabled')
+              {
+                  $('#input-add-radio').prop('disabled', 'disabled');
+
+                  $.getJSON('../index_web_api.php', {cmd: 'addstation', i:'\''+$('#input-add-radio').val()+'\''}, function(json, textStatus) {
+                      
+                      $('#input-add-radio').val('Enter radio-station url here...');  
+                      $(this).button('reset'); 
+                      getPlaylist();           
+                      $('#input-add-radio').removeAttr('disabled');
+                  }); 
+              }     
+              
+          });
+
+          
+
+          $('#modal-del-radio-btn-del').click(function() {
+              $(this).button('loading');
+              $.getJSON('../index_web_api.php', {cmd: 'delstation', i:$('#modal-del-radio').attr('data-id')}, function(json, textStatus) {
+                  closeModal();
+                  getPlaylist();                  
+              });                     
+          });
+
+          sizing();
+
+          getPlaylist();
+
+      });
+
+      function getPlaylist()
+      {
+        $.getJSON('../index_web_api.php', {cmd: 'playlist'}, function(json, textStatus) {
+              
+              addPlaylistItems(json);
+
+              $('.li-del-radio').click(function(e) {
+                  e.preventDefault();
+                  var modalText = 'Do you really want to delete <strong>'+$(this).text()+'</strong>?';
+                  showModal('Warning', modalText, $(this).attr('data-id'));              
+              });
+          });                  
+      } 
+
+      function addPlaylistItems(data)
+      {
+          var stations = '';        
+          $.each(data, function(i, item) {
+              stations += '<li class="station-sel"><a href="#" class="li-del-radio" data-id="'+item.id+'">'+item.name+'</a></li>';     
+          });
+          $('#playlist-list').html(stations);
+
+      }
+
+      $(window).resize(function() {
+        sizing();
+      });
+
+      function sizing() {
+        $("#input-add-radio").width(($("#form-add-radio").width()-$("#btn-add-radio").width() -46)+"px");
+      }
+
+      function showModal(headerText, bodyText, id)
+      {
+        $('#modal-del-radio').attr('data-id', id);
+        $('#modal-del-radio .modal-header h3').html(headerText);
+        $('#modal-del-radio .modal-body').html(bodyText);
+        $('#modal-del-radio').modal();
+      }
+
+      function closeModal()
+      {
+        $('#modal-del-radio').modal('hide');
+        $('#modal-del-radio-btn-del').button('reset');
+      }
+
+    </script>
+  </body>
+</html>

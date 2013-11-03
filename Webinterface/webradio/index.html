@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RadioduinoWRT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Radio-Server control panel">
+    <meta name="author" content="Raffael Herrmann">
+
+    <!-- Le styles -->
+    <style type="text/css">
+      
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+    
+    <link href="css/bootstrap_cyborg.min.css" rel="stylesheet">    
+    <link href="css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="css/digitize/digitize.min.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="../assets/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="img/favicons/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/favicons/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/favicons/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="img/favicons/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon-precomposed" href="img/favicons/apple-touch-icon-57x57.png">
+    <link rel="shortcut icon" href="img/favicons/favicon.ico">
+
+
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/digitize/cmatrix.min.js"></script>
+    <script src="js/digitize/digitize.min.js"></script>
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#"><i class="icon-signal icon-white"></i>RadioduinoWRT</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="index.html">Control</a></li>
+              <li><a href="stationmanager.html">Stationmanager</a></li>
+            </ul>            
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <!-- Main hero unit for a primary marketing message or call to action -->
+      <div class="hero-unit" style="padding:10px;">
+
+        <div id="lcddisplay" style="font-family:LCDBOLD;background-color:#000000;padding:10px;border-radius:10px;margin-bottom:5px;">
+          <span class="lcd-header" style="color:#26ADE4;">Title: </span><span id="lcd-title" style="color:#4DBCE9;" class="lcd-data">loading...</span>
+          <br/>
+          <span class="lcd-header" style="color:#26ADE4;">Station: </span><span id="lcd-station" style="color:#4DBCE9;" class="lcd-data">loading...</span>
+        </div>
+        <button id="btn-play" class="btn btn-primary" style="margin-bottom:5px;"><i class="icon-play icon-white"></i> Load</button>
+
+        <div class="btn-group">
+          <button id="btn-volume-down" class="btn btn-primary" style="margin-bottom:5px;"><i class="icon-volume-down icon-white"></i></button>
+          <button id="btn-volume-status" class="btn btn-primary" style="margin-bottom:5px;">Vol --%</button>
+          <button id="btn-volume-up" class="btn btn-primary" style="margin-bottom:5px;"><i class="icon-volume-up icon-white"></i></button>
+        </div>
+
+        <button id="pl-btn" data-toggle="collapse" data-target="#demo" class="btn btn-primary dropdown-toggle" style="margin-bottom:5px;">
+          <i class="icon-list icon-white"></i> Stations </span><span id="playlist-btn-count" class="badge badge-inverse">/</span>
+        </button>       
+       
+      </div>
+
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="span8">
+          <div id="demo" class="collapse">
+            <h2>Station list</h2>
+               
+                <ul id="playlist-list" class="nav nav-tabs nav-stacked">
+                </ul>   
+
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <footer>
+        <p>&copy; www.code-bude.net 2013</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->    
+
+    <script type="text/javascript">
+
+      var lcdTitle, lcdStation;
+      $(document).ready(function (){
+
+            $('#btn-play').click(function(){
+              changePlaystate();
+            });
+
+            $('#btn-volume-up').click(function(){
+              setVolume('up');
+            });
+
+            $('#btn-volume-down').click(function(){
+              setVolume('down');
+            });
+
+            
+
+            
+            triggerLcd();    
+            getPlaystate();
+            getVolume();
+            getPlaylist();
+      });
+
+      function changePlaystate()
+      {
+        $.getJSON('../index_web_api.php', {cmd: 'autoplaystop'}, function(json, textStatus) {
+              setPlaybutton(json.playstate);
+          });      
+      }
+
+      function getPlaystate()
+      {
+        $.getJSON('../index_web_api.php', {cmd: 'playstate'}, function(json, textStatus) {
+              setPlaybutton(json.playstate);       
+          });                  
+      }      
+
+      function setPlaybutton(playstate)
+      {
+        if (playstate == 'play')
+              {
+                $('#btn-play').html('<i class="icon-play icon-white"></i> Playing');
+              } 
+              else
+              {
+                $('#btn-play').html('<i class="icon-pause icon-white"></i> Paused');
+              }
+      }
+
+      function getPlaylist()
+      {
+        $.getJSON('../index_web_api.php', {cmd: 'playlist'}, function(json, textStatus) {
+              setPlaylistCount(json.length);       
+              addPlaylistItems(json);
+          });                  
+      } 
+
+    
+      function addPlaylistItems(data)
+      {
+          var stations = '';        
+          $.each(data, function(i, item) {
+              stations += '<li class="station-sel" data-id="'+item.id+'"><a href="#">'+item.name+'</a></li>';       
+          });
+          $('#playlist-list').html(stations);
+
+          $('.station-sel').click(function(){
+              $.getJSON('../index_web_api.php', {cmd: 'playstation', i: $(this).attr('data-id')}, function(json, textStatus) {
+                  $('#pl-btn').click();
+              });  
+          });
+         // 
+           //       <li class="active"><a href="#">Technobase.fm</a></li>'
+      }
+
+      function setPlaylistCount(numitems)
+      {
+        $('#playlist-btn-count').text(numitems);
+      }
+
+      function setVolume(volumeval)
+      {
+        $.getJSON('../index_web_api.php', {cmd: 'volume'+volumeval}, function(json, textStatus) {
+              setVolumebutton(json.volume);       
+          });                  
+      }   
+
+      function getVolume()
+      {
+        $.getJSON('../index_web_api.php', {cmd: 'getvolume'}, function(json, textStatus) {
+              setVolumebutton(json.volume);       
+          });                  
+      }      
+
+      function setVolumebutton(vol)
+      {
+        $('#btn-volume-status').html('Vol '+vol+'%');
+      }
+
+      function triggerLcd()
+      {
+        //$('#lcddisplay').html(lcdDisplayBaseHtml);
+      	//
+      	loadLcdData();      	
+        getPlaystate();
+        setTimeout(triggerLcd, 2000);
+      }
+
+      function loadLcdData()
+      {
+        $.getJSON('../index_web_api.php', {cmd: 'status'}, function(json, textStatus) {
+              var lcdTitleTemp = json.title.replace('&','und');
+              if (lcdTitle!=lcdTitleTemp)
+              {
+                lcdTitle = lcdTitleTemp;
+                $('#lcd-title').text(lcdTitle);
+              }
+              
+              var lcdStationTemp = json.station.replace('&','und');
+              if (lcdStation!=lcdStationTemp)
+              {
+                lcdStation = lcdStationTemp;
+                $('#lcd-station').text(lcdStation);  
+              }
+
+          });          
+      }
+
+     
+
+    </script>
+  </body>
+</html>
